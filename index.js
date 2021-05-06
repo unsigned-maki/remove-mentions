@@ -6,6 +6,8 @@ const INTERVAL = 1000; // interval in which pings are cleared (milliseconds)
 
 let interval;
 let cssRules;
+let lastChannelBadgesState;
+let lastServerBadgesState;
 
 module.exports = class RemoveMentions extends Plugin
 {
@@ -97,8 +99,18 @@ module.exports = class RemoveMentions extends Plugin
     	this.findCssRules();
 
         interval = setInterval(function(plugin) {
-            plugin.hideChannelBadges(plugin.settings.get("channelBadges", true));
-            plugin.hideServerBadges(plugin.settings.get("serverBadges", true));
+        	if (lastChannelBadgesState != plugin.settings.get("channelBadges", true))
+        	{
+        		plugin.hideChannelBadges(plugin.settings.get("channelBadges", true));
+        	}
+
+        	if (lastServerBadgesState != plugin.settings.get("serverBadges", true))
+        	{
+        		plugin.hideServerBadges(plugin.settings.get("serverBadges", true));
+        	}
+
+            lastChannelBadgesState = plugin.settings.get("channelBadges", true);
+            lastServerBadgesState = plugin.settings.get("serverBadges", true);
         }, INTERVAL, this);
     }
 

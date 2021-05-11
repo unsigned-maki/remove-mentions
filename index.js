@@ -6,6 +6,7 @@ const INTERVAL = 1000; // interval in which pings are cleared (milliseconds)
 
 let interval;
 let cssRules;
+let htmlTags;
 
 module.exports = class RemoveMentions extends Plugin
 {
@@ -42,6 +43,21 @@ module.exports = class RemoveMentions extends Plugin
     	}
     }
 
+    findHtmlTags()
+    {
+        var elements;
+        elements = document.getElementsByTagName("*");
+
+        for (let i = 0; i < elements.length; i++)
+        {
+            if (elements[i].id.includes("lower_badge_masks"))
+            {
+                htmlTags[0] = elements[i].tagName;
+                return;
+            }
+        }        
+    }
+
     hideChannelBadges(toggle)
     {
         var elements;
@@ -63,7 +79,7 @@ module.exports = class RemoveMentions extends Plugin
 
         for (let j = 0; j < document.getElementsByClassName(cssRules[0]).length; j++)
         {
-            elements = document.getElementsByTagName("rect");
+            elements = document.getElementsByTagName(htmlTags[0]);
 
             for (let i = 0; i < elements.length; i++)
             {
@@ -87,6 +103,7 @@ module.exports = class RemoveMentions extends Plugin
     startPlugin()  
     {
     	cssRules = ["", "", "", ""];
+        htmlTags = [""]
 
 	    powercord.api.settings.registerSettings(this.entityID, {
 	      category: this.entityID,
@@ -95,6 +112,8 @@ module.exports = class RemoveMentions extends Plugin
 	    });
 
     	this.findCssRules();
+        
+        window.addEventListener("load", this.findHtmlTags);
 
         interval = setInterval(function(plugin) {
             plugin.hideChannelBadges(plugin.settings.get("channelBadges", true));

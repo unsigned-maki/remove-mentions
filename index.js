@@ -7,6 +7,7 @@ const INTERVAL = 1000; // interval in which pings are cleared (milliseconds)
 let interval;
 let cssRules;
 let htmlTags;
+let htmlTagsFound;
 
 module.exports = class RemoveMentions extends Plugin
 {
@@ -23,21 +24,13 @@ module.exports = class RemoveMentions extends Plugin
     			if ("selectorText" in styleSheetRules[i])
     			{
 	    			if (styleSheetRules[i]["selectorText"].includes("lowerBadge") && !styleSheetRules[i]["selectorText"].includes("upperBadge"))
-	    			{
 	    				cssRules[0] = styleSheetRules[i]["selectorText"].replace(".", "");
-	    			}
                     else if (styleSheetRules[i]["selectorText"].includes("unreadMentionsBar") && !styleSheetRules[i]["selectorText"].includes("unreadMentionsIndicator"))
-                    {
                         cssRules[1] = styleSheetRules[i]["selectorText"].replace(".", "").replace("::before", "");
-                    }
                     else if (styleSheetRules[i]["selectorText"].includes("unreadBar") && !styleSheetRules[i]["selectorText"].includes("unreadBottom") && !styleSheetRules[i]["selectorText"].includes("unreadTop"))
-                    {
                         cssRules[2] = styleSheetRules[i]["selectorText"].replace(".", "").replace("::before", "");
-                    }
                     else if (styleSheetRules[i]["selectorText"].includes("mentionsBadge"))
-                    {
                         cssRules[3] = styleSheetRules[i]["selectorText"].replace(".", "");
-                    }
     			}
     		}
     	}
@@ -53,9 +46,10 @@ module.exports = class RemoveMentions extends Plugin
             if (elements[i].id.includes("lower_badge_masks"))
             {
                 htmlTags[0] = elements[i].tagName;
+                htmlTagsFound = true;
                 return;
             }
-        }        
+        }
     }
 
     hideChannelBadges(toggle)
@@ -84,9 +78,7 @@ module.exports = class RemoveMentions extends Plugin
             for (let i = 0; i < elements.length; i++)
             {
                 if (elements[i].id.includes("lower_badge_masks"))
-                {
                     elements[i].style.visibility = toggle ? "hidden" : "visible";
-                }
             }
 
             document.getElementsByClassName(cssRules[0])[j].style.visibility = toggle ? "hidden" : "visible";
@@ -103,7 +95,8 @@ module.exports = class RemoveMentions extends Plugin
     startPlugin()  
     {
     	cssRules = ["", "", "", ""];
-        htmlTags = [""]
+        htmlTags = ["rect"]
+        htmlTagsFound = false;
 
 	    powercord.api.settings.registerSettings(this.entityID, {
 	      category: this.entityID,
@@ -116,6 +109,9 @@ module.exports = class RemoveMentions extends Plugin
         window.addEventListener("load", this.findHtmlTags);
 
         interval = setInterval(function(plugin) {
+            if (!htmlTagsFound)
+                setTimeout(plugin.findHtmlTags, 5000);
+
             plugin.hideChannelBadges(plugin.settings.get("channelBadges", true));
             plugin.hideServerBadges(plugin.settings.get("serverBadges", true));
         }, INTERVAL, this);
